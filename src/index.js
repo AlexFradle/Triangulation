@@ -1,14 +1,20 @@
 import p5 from "p5";
-import { circumcenter, circumradius, randint, dist } from "./utils";
+import { circumcenter, circumradius, randint, dist, getSuperTriangle } from "./utils";
 
 const WIDTH = 1000;
 const HEIGHT = 1000;
-const NUM_OF_POINTS = 100;
+const NUM_OF_POINTS = 20;
+let FILL = true;
+let SHOW_VERTS = true;
+let SHOW_CIRCLES = false;
 
+const BOUNDS = [[100, 100], [100, HEIGHT - 100], [WIDTH - 100, HEIGHT - 100], [WIDTH - 100, 100]];
+const BOUNDS_WIDTH = BOUNDS[3][0] - BOUNDS[0][0];
+const BOUNDS_HEIGHT = BOUNDS[1][1] - BOUNDS[0][1];
 
 const POINTS = [
     // [0, 0], [0, 1000], [1000, 1000], [1000, 0],
-    ...Array(NUM_OF_POINTS).fill(0).map(_ => [randint(0, WIDTH), randint(0, HEIGHT)])
+    ...Array(NUM_OF_POINTS).fill(0).map(_ => [randint(BOUNDS[0][0], BOUNDS_WIDTH), randint(BOUNDS[0][1], BOUNDS_HEIGHT)])
 ];
 
 class Triangle {
@@ -44,7 +50,7 @@ const makeRandomVector = () => {
     }
 }
 
-const makeTriangulation = (w, h) => {
+const makeTriangulation = (pointBounds) => {
     const compareEdges = (e1, e2) => {
         return (
             e1[0][0] === e2[0][0] && e1[0][1] === e2[0][1] && e1[1][0] === e2[1][0] && e1[1][1] === e2[1][1]
@@ -52,11 +58,9 @@ const makeTriangulation = (w, h) => {
             e1[1][0] === e2[0][0] && e1[1][1] === e2[0][1] && e1[0][0] === e2[1][0] && e1[0][1] === e2[1][1]
         )
     }
-    const superTriangle = new Triangle(
-        [-(0.75 * w), -10],
-        [w / 2, h + (0.75 * h)],
-        [w + (0.75 * w), -10]
-    );
+    const superTriangle = new Triangle(...getSuperTriangle(...pointBounds));
+    console.log(superTriangle);
+
     let triangulation = [];
     triangulation.push(superTriangle);
     for (const point of POINTS) {
@@ -71,8 +75,8 @@ const makeTriangulation = (w, h) => {
             for (const edge of triangle.edges) {
                 if (
                     badTriangles.filter(tri => tri !== triangle)   // remove current triangle
-                        .flatMap(tri => tri.edges) // get all edges of triangles
-                        .find(e => compareEdges(e, edge)) === undefined
+                                .flatMap(tri => tri.edges) // get all edges of triangles
+                                .find(e => compareEdges(e, edge)) === undefined
                 ) {
                     polygon.push(edge);
                 }
@@ -94,14 +98,13 @@ const makeTriangulation = (w, h) => {
     return triangulation;
 }
 
-let FILL = true;
-let SHOW_VERTS = false;
-let SHOW_CIRCLES = false;
+
 
 const sketch = (p) => {
     const points = POINTS;
     const pointsVectors = Array(POINTS.length).fill(0).map(_ => makeRandomVector());
-    let triangles = makeTriangulation(WIDTH, HEIGHT);
+    // const bounds = [[0, 0], [0, HEIGHT], [WIDTH, HEIGHT], [WIDTH, 0]];
+    let triangles = makeTriangulation(BOUNDS);
     let selectedIndex = null;
 
     const movePoints = () => {
@@ -109,11 +112,11 @@ const sketch = (p) => {
             let newX = POINTS[i][0] + (pointsVectors[i].unit.x * pointsVectors[i].magnitude);
             let newY = POINTS[i][1] + (pointsVectors[i].unit.y * pointsVectors[i].magnitude);
 
-            if (newX < 0 || newX > WIDTH) {
+            if (newX < BOUNDS[0][0] || newX > BOUNDS[3][0]) {
                 pointsVectors[i].unit.x = -pointsVectors[i].unit.x;
                 newX = POINTS[i][0] + (pointsVectors[i].unit.x * pointsVectors[i].magnitude);
             }
-            if (newY < 0 || newY > HEIGHT) {
+            if (newY < BOUNDS[0][1] || newY > BOUNDS[2][0]) {
                 pointsVectors[i].unit.y = -pointsVectors[i].unit.y;
                 newY = POINTS[i][1] + (pointsVectors[i].unit.y * pointsVectors[i].magnitude);
             }
@@ -129,7 +132,10 @@ const sketch = (p) => {
 
     p.draw = () => {
         p.background(255);
-        triangles = makeTriangulation(WIDTH, HEIGHT)
+        triangles = makeTriangulation(BOUNDS);
+        p.noFill();
+        p.stroke("red");
+        p.rect(100, 100, BOUNDS_WIDTH, BOUNDS_HEIGHT);
         movePoints();
         p.strokeWeight(1);
         if (!FILL) p.noFill();
@@ -179,53 +185,3 @@ document.getElementById("toggle-fill").onchange = (e) => {
     FILL = e.target.checked;
 }
 
-// const POINTS = [[310, 130], [220, 280], [350, 130]];
-// const sketch = (p) => {
-//     const points = POINTS;
-//     let cr = circumradius(...points);
-//     let cc = circumcenter(...points);
-//
-//     p.setup = () => {
-//         p.createCanvas(1000, 1000);
-//     }
-//
-//     p.draw = () => {
-//         cr = circumradius(...points);
-//         cc = circumcenter(...points);
-//         p.background(220);
-//         p.stroke("black");
-//         p.strokeWeight(2);
-//         p.triangle(...points[0], ...points[1], ...points[2]);
-//         for (const [x, y] of points) {
-//             p.strokeWeight(10);
-//             p.point(x, y);
-//         }
-//         p.stroke("red");
-//         p.strokeWeight(1);
-//         p.noFill();
-//         p.circle(...cc, cr * 2);
-//         p.strokeWeight(10);
-//         p.point(...cc);
-//     }
-// }
-//
-// new p5(sketch, "canvas");
-//
-// document.getElementById("p1-x").oninput = (e) => {
-//     POINTS[0][0] = e.target.value;
-// }
-// document.getElementById("p1-y").oninput = (e) => {
-//     POINTS[0][1] = e.target.value;
-// }
-// document.getElementById("p2-x").oninput = (e) => {
-//     POINTS[1][0] = e.target.value;
-// }
-// document.getElementById("p2-y").oninput = (e) => {
-//     POINTS[1][1] = e.target.value;
-// }
-// document.getElementById("p3-x").oninput = (e) => {
-//     POINTS[2][0] = e.target.value;
-// }
-// document.getElementById("p3-y").oninput = (e) => {
-//     POINTS[2][1] = e.target.value;
-// }

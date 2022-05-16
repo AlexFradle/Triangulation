@@ -4,7 +4,8 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 module.exports = {
     entry: {
         index: './src/index.js',
-        circumcircle: "./src/circumcircle.js"
+        circumcircle: "./src/circumcircle.js",
+        superTriangle: "./src/superTriangle.js"
     },
     output: {
         path: path.resolve(__dirname, 'dist'),
@@ -22,6 +23,12 @@ module.exports = {
             chunks: ["circumcircle"],
             inject: true,
             filename: "circumcircle.html"
+        }),
+        new HtmlWebpackPlugin({
+            template: "./src/superTriangle.html",
+            chunks: ["superTriangle"],
+            inject: true,
+            filename: "superTriangle.html"
         }),
     ],
     devServer: {
