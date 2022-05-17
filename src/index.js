@@ -1,4 +1,3 @@
-import p5 from "p5";
 import { circumcenter, circumradius, randint, dist, getSuperTriangle } from "./utils";
 
 const WIDTH = 1000;
@@ -34,7 +33,7 @@ class Triangle {
     }
 
     getEdges() {
-        return [[this.a, this.b], [this.b, this.c], [this.c , this.a]]
+        return [[this.a, this.b], [this.b, this.c], [this.c, this.a]];
     }
 
     get points() {
@@ -50,20 +49,25 @@ const makeRandomVector = () => {
     }
 }
 
-const makeTriangulation = (pointBounds) => {
+const makeTriangulation = (points, pointBounds) => {
     const compareEdges = (e1, e2) => {
         return (
-            e1[0][0] === e2[0][0] && e1[0][1] === e2[0][1] && e1[1][0] === e2[1][0] && e1[1][1] === e2[1][1]
+            e1[0][0] === e2[0][0] &&
+            e1[0][1] === e2[0][1] &&
+            e1[1][0] === e2[1][0] &&
+            e1[1][1] === e2[1][1]
         ) || (
-            e1[1][0] === e2[0][0] && e1[1][1] === e2[0][1] && e1[0][0] === e2[1][0] && e1[0][1] === e2[1][1]
+            e1[1][0] === e2[0][0] &&
+            e1[1][1] === e2[0][1] &&
+            e1[0][0] === e2[1][0] &&
+            e1[0][1] === e2[1][1]
         )
     }
     const superTriangle = new Triangle(...getSuperTriangle(...pointBounds));
-    console.log(superTriangle);
 
     let triangulation = [];
     triangulation.push(superTriangle);
-    for (const point of POINTS) {
+    for (const point of points) {
         const badTriangles = [];
         for (const triangle of triangulation) {
             if (dist(point, triangle.circumcenter) < triangle.circumradius) {
@@ -73,17 +77,17 @@ const makeTriangulation = (pointBounds) => {
         const polygon = [];
         for (const triangle of badTriangles) {
             for (const edge of triangle.edges) {
-                if (
-                    badTriangles.filter(tri => tri !== triangle)   // remove current triangle
-                                .flatMap(tri => tri.edges) // get all edges of triangles
-                                .find(e => compareEdges(e, edge)) === undefined
-                ) {
+                // remove current triangle, get all edges
+                const isEdge = badTriangles.filter(t => t !== triangle)
+                                           .flatMap(t => t.edges)
+                                           .find(e => compareEdges(e, edge));
+                if (isEdge === undefined) {
                     polygon.push(edge);
                 }
             }
         }
         for (const triangle of badTriangles) {
-            triangulation = triangulation.filter(tri => tri !== triangle);
+            triangulation = triangulation.filter(t => t !== triangle);
         }
         for (const edge of polygon) {
             const newTri = new Triangle(edge[0], edge[1], point);
@@ -91,8 +95,8 @@ const makeTriangulation = (pointBounds) => {
         }
     }
     for (const triangle of triangulation) {
-        if (triangle.points.some(vert => superTriangle.points.includes(vert))) {
-            triangulation = triangulation.filter(tri => tri !== triangle);
+        if (triangle.points.some(v => superTriangle.points.includes(v))) {
+            triangulation = triangulation.filter(t => t !== triangle);
         }
     }
     return triangulation;
@@ -104,7 +108,7 @@ const sketch = (p) => {
     const points = POINTS;
     const pointsVectors = Array(POINTS.length).fill(0).map(_ => makeRandomVector());
     // const bounds = [[0, 0], [0, HEIGHT], [WIDTH, HEIGHT], [WIDTH, 0]];
-    let triangles = makeTriangulation(BOUNDS);
+    let triangles = makeTriangulation(POINTS, BOUNDS);
     let selectedIndex = null;
 
     const movePoints = () => {
@@ -132,7 +136,7 @@ const sketch = (p) => {
 
     p.draw = () => {
         p.background(255);
-        triangles = makeTriangulation(BOUNDS);
+        triangles = makeTriangulation(POINTS, BOUNDS);
         p.noFill();
         p.stroke("red");
         p.rect(100, 100, BOUNDS_WIDTH, BOUNDS_HEIGHT);

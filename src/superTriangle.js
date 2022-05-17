@@ -1,4 +1,3 @@
-import p5 from "p5";
 import {getSuperTriangle} from "./utils";
 
 const POINTS = [[310, 130], [220, 280], [350, 130]];

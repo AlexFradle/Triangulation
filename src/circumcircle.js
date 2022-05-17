@@ -1,19 +1,18 @@
-import p5 from "p5";
 import { circumcenter, circumradius } from "./utils";
 
-const otherMethod = (a, b, c) => {
-    // https://en.wikipedia.org/wiki/Circumscribed_circle#Cartesian_coordinates_2
-    const bp = [b[0] - a[0], b[1] - a[1]];
-    const cp = [c[0] - a[0], c[1] - a[1]];
-    const dp = 2 * (bp[0]*cp[1] - bp[1]*cp[0]);
-    const f = bp[0]*bp[0] + bp[1]*bp[1];
-    const g = cp[0]*cp[0] + cp[1]*cp[1];
-    const uprime = [
-        (cp[1]*f - bp[1]*g) / dp,
-        (bp[0]*g - cp[0]*f) / dp
+const betterMethod = (A, B, C) => {
+    const Bp = [B[0] - A[0], B[1] - A[1]];
+    const Cp = [C[0] - A[0], C[1] - A[1]];
+    const Dp = 2 * (Bp[0]*Cp[1] - Bp[1]*Cp[0]);
+    const f = Bp[0]*Bp[0] + Bp[1]*Bp[1];
+    const g = Cp[0]*Cp[0] + Cp[1]*Cp[1];
+    const Up = [
+        (Cp[1]*f - Bp[1]*g) / Dp,
+        (Bp[0]*g - Cp[0]*f) / Dp
     ];
-    const r = Math.sqrt(uprime[0]*uprime[0] + uprime[1]*uprime[1]);
-    console.log(uprime[0] + a[0], uprime[1] + a[1], r);
+    const r = Math.sqrt(Up[0]*Up[0] + Up[1]*Up[1]);
+    const U = [Up[0] + A[0], Up[1] + A[1]];
+    return {center: U, radius: r};
 }
 
 const POINTS = [[310, 130], [220, 280], [350, 130]];
@@ -22,7 +21,7 @@ const sketch = (p) => {
     let cr = circumradius(...points);
     let cc = circumcenter(...points);
     console.log(cc, cr);
-    otherMethod(...points);
+    betterMethod(...points);
 
     p.setup = () => {
         p.createCanvas(1000, 1000);
