@@ -3,13 +3,13 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
     entry: {
-        index: './src/index.js',
+        index: ['./src/index.js', "./src/convert.js"],
         circumcircle: "./src/circumcircle.js",
         superTriangle: "./src/superTriangle.js"
     },
     output: {
         path: path.resolve(__dirname, 'dist'),
-        filename: '[name].bundle.js',
+        filename: '[name].[contenthash].js',
         clean: true
     },
     plugins: [
@@ -32,4 +32,26 @@ module.exports = {
             filename: "superTriangle.html"
         }),
     ],
+    module: {
+        rules: [
+            {
+                test: /\.s[ac]ss$/i,
+                use: [
+                    "style-loader",
+                    "css-loader",
+                    "sass-loader",
+                ],
+            },
+            {
+                test: /\.m?js$/,
+                exclude: /node_modules/,
+                use: {
+                    loader: 'babel-loader',
+                    options: {
+                        presets: ['@babel/preset-env']
+                    }
+                }
+            }
+        ]
+    }
 };
