@@ -1,31 +1,68 @@
-import {getSuperTriangle} from "./utils";
+import {dist, errorGenerator, getBoundingBoxPoints, getParams, getSuperTriangle} from "./utils";
 
-const POINTS = [[310, 130], [220, 280], [350, 130]];
+const params = getParams();
+
+const WIDTH = params.width !== null
+    ? (params.width === "max"
+        ? window.innerWidth
+        : (!isNaN(+params.width)
+            ? +params.width
+            : errorGenerator("incorrect width")))
+    : 1000;
+
+const HEIGHT = params.height !== null
+    ? (params.height === "max"
+        ? window.innerHeight
+        : (!isNaN(+params.height)
+            ? +params.height
+            : errorGenerator("incorrect height")))
+    : 1000;
+
+const POINTS = [[120, 50], [220, 180], [150, 130], [180, 70]];
 const sketch = (p) => {
-    const points = POINTS;
-    const rect = [[80, 20], [80, 240], [160, 240], [160, 20]];
-    const [superTri, bigRect] = getSuperTriangle(...rect, true);
+    let rect = getBoundingBoxPoints(POINTS);
+    let [superTri, bigRect] = getSuperTriangle(...rect, true);
+    let selectedIndex = null;
 
     p.setup = () => {
-        p.createCanvas(1000, 1000);
+        p.createCanvas(WIDTH, HEIGHT);
     }
 
     p.draw = () => {
-        p.background(220);
-        p.stroke("black");
-        p.line(...superTri[0], ...superTri[1]);
-        p.line(...superTri[1], ...superTri[2]);
-        p.line(...superTri[2], ...superTri[0]);
+        rect = getBoundingBoxPoints(POINTS);
+        [superTri, bigRect] = getSuperTriangle(...rect, true);
+        p.background(32);
+        p.strokeWeight(8);
+        p.stroke(0, 255, 0);
+        for (const point of POINTS) {
+            p.point(...point);
+        }
+        p.rectMode(p.CORNERS);
         p.stroke("red");
-        p.line(...rect[0], ...rect[1]);
-        p.line(...rect[1], ...rect[2]);
-        p.line(...rect[2], ...rect[3]);
-        p.line(...rect[3], ...rect[0]);
-        p.stroke("green");
-        p.line(...bigRect[0], ...bigRect[1]);
-        p.line(...bigRect[1], ...bigRect[2]);
-        p.line(...bigRect[2], ...bigRect[3]);
-        p.line(...bigRect[3], ...bigRect[0]);
+        p.strokeWeight(1);
+        p.rect(...rect[0], ...rect[2]);
+        p.stroke("blue");
+        p.rect(...bigRect[0], ...bigRect[2]);
+        p.stroke("yellow");
+        p.noFill();
+        p.triangle(...superTri[0], ...superTri[1], ...superTri[2]);
+    }
+
+    p.mousePressed = () => {
+        for (let i = 0; i < POINTS.length; i++) {
+            const [x, y] = POINTS[i];
+            const d = dist([p.mouseX, p.mouseY], [x, y]);
+            if (d < 20) {
+                selectedIndex = i;
+            }
+        }
+    }
+
+    p.mouseDragged = () => {
+        const [x, y] = POINTS[selectedIndex];
+        if (dist([p.mouseX, p.mouseY], [x, y]) < 20) {
+            POINTS[selectedIndex] = [p.mouseX, p.mouseY];
+        }
     }
 }
 new p5(sketch, "canvas");

@@ -1,19 +1,22 @@
-import { circumcenter, circumradius } from "./utils";
+import {circumcenter, circumradius, dist, getParams, betterMethod, errorGenerator} from "./utils";
 
-const betterMethod = (A, B, C) => {
-    const Bp = [B[0] - A[0], B[1] - A[1]];
-    const Cp = [C[0] - A[0], C[1] - A[1]];
-    const Dp = 2 * (Bp[0]*Cp[1] - Bp[1]*Cp[0]);
-    const f = Bp[0]*Bp[0] + Bp[1]*Bp[1];
-    const g = Cp[0]*Cp[0] + Cp[1]*Cp[1];
-    const Up = [
-        (Cp[1]*f - Bp[1]*g) / Dp,
-        (Bp[0]*g - Cp[0]*f) / Dp
-    ];
-    const r = Math.sqrt(Up[0]*Up[0] + Up[1]*Up[1]);
-    const U = [Up[0] + A[0], Up[1] + A[1]];
-    return {center: U, radius: r};
-}
+const params = getParams();
+
+const WIDTH = params.width !== null
+    ? (params.width === "max"
+        ? window.innerWidth
+        : (!isNaN(+params.width)
+            ? +params.width
+            : errorGenerator("incorrect width")))
+    : 1000;
+
+const HEIGHT = params.height !== null
+    ? (params.height === "max"
+        ? window.innerHeight
+        : (!isNaN(+params.height)
+            ? +params.height
+            : errorGenerator("incorrect height")))
+    : 1000;
 
 const POINTS = [[310, 130], [220, 280], [350, 130]];
 const sketch = (p) => {
@@ -21,49 +24,57 @@ const sketch = (p) => {
     let cr = circumradius(...points);
     let cc = circumcenter(...points);
     console.log(cc, cr);
-    betterMethod(...points);
+    let bm = betterMethod(...points);
+    let selectedIndex = null;
 
     p.setup = () => {
-        p.createCanvas(1000, 1000);
+        p.createCanvas(WIDTH, HEIGHT);
     }
 
     p.draw = () => {
         cr = circumradius(...points);
         cc = circumcenter(...points);
-        p.background(220);
-        p.stroke("black");
+        bm = betterMethod(...points);
+        p.background(32);
+        p.stroke("blue");
+        p.strokeWeight(10);
+        p.noFill();
+        p.circle(...cc, cr * 2);
+        p.strokeWeight(10);
+        p.point(...cc);
+        p.stroke(0, 255, 0);
+        p.strokeWeight(1);
+        p.circle(...bm.center, bm.radius * 2);
+        p.strokeWeight(5);
+        p.point(...bm.center);
+        p.stroke("red");
         p.strokeWeight(2);
         p.triangle(...points[0], ...points[1], ...points[2]);
         for (const [x, y] of points) {
             p.strokeWeight(10);
             p.point(x, y);
         }
-        p.stroke("red");
-        p.strokeWeight(1);
-        p.noFill();
-        p.circle(...cc, cr * 2);
-        p.strokeWeight(10);
-        p.point(...cc);
+
+        p.mousePressed = () => {
+            for (let i = 0; i < POINTS.length; i++) {
+                const [x, y] = POINTS[i];
+                const d = dist([p.mouseX, p.mouseY], [x, y]);
+                if (d < 20) {
+                    selectedIndex = i;
+                }
+            }
+        }
+
+        p.mouseDragged = () => {
+            const [x, y] = POINTS[selectedIndex];
+            if (dist([p.mouseX, p.mouseY], [x, y]) < 20) {
+                POINTS[selectedIndex] = [p.mouseX, p.mouseY];
+            }
+        }
+
     }
 }
 
 new p5(sketch, "canvas");
 
-document.getElementById("p1-x").oninput = (e) => {
-    POINTS[0][0] = e.target.value;
-}
-document.getElementById("p1-y").oninput = (e) => {
-    POINTS[0][1] = e.target.value;
-}
-document.getElementById("p2-x").oninput = (e) => {
-    POINTS[1][0] = e.target.value;
-}
-document.getElementById("p2-y").oninput = (e) => {
-    POINTS[1][1] = e.target.value;
-}
-document.getElementById("p3-x").oninput = (e) => {
-    POINTS[2][0] = e.target.value;
-}
-document.getElementById("p3-y").oninput = (e) => {
-    POINTS[2][1] = e.target.value;
-}
+

@@ -26,7 +26,41 @@ export const circumradius = (a, b, c) => {
     );
 }
 
+export const betterMethod = (A, B, C) => {
+    const Bp = [B[0] - A[0], B[1] - A[1]];
+    const Cp = [C[0] - A[0], C[1] - A[1]];
+    const Dp = 2 * (Bp[0]*Cp[1] - Bp[1]*Cp[0]);
+    const f = Bp[0]*Bp[0] + Bp[1]*Bp[1];
+    const g = Cp[0]*Cp[0] + Cp[1]*Cp[1];
+    const Up = [
+        (Cp[1]*f - Bp[1]*g) / Dp,
+        (Bp[0]*g - Cp[0]*f) / Dp
+    ];
+    const r = Math.sqrt(Up[0]*Up[0] + Up[1]*Up[1]);
+    const U = [Up[0] + A[0], Up[1] + A[1]];
+    return {center: U, radius: r};
+}
+
 export const randint = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+
+export const hexToRgb = (hex) => {
+    const match = /(?:[0-9]|[a-f]|[A-F]){6}/.exec(hex);
+    if (match === null) return null;
+    const num = parseInt(match[0], 16);
+    return [
+        (num >> 16) & 255,
+        (num >> 8) & 255,
+        num & 255
+    ];
+}
+
+export const lerpColor = (a, b, t) => {
+    return [
+        a[0] + (b[0] - a[0]) * t,
+        a[1] + (b[1] - a[1]) * t,
+        a[2] + (b[2] - a[2]) * t,
+    ]
+}
 
 export const getLineEquation = (p1, p2) => {
     const m = (p2[1] - p1[1]) / (p2[0] - p1[0]);
@@ -49,6 +83,21 @@ export const lineIntersection = (le1, le2) => {
     return [x, y];
 }
 
+export const getBoundingBoxPoints = (points) => {
+    const xs = points.map(p => p[0]);
+    const ys = points.map(p => p[1]);
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs);
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...ys);
+    return [
+        [minX, minY],
+        [minX, maxY],
+        [maxX, maxY],
+        [maxX, minY]
+    ]
+}
+
 export const getSuperTriangle = (P, Q, R, S, example = false) => {
     // Vertex order:
     // b---c
@@ -62,11 +111,22 @@ export const getSuperTriangle = (P, Q, R, S, example = false) => {
     const C = getScaled(R);
     const D = getScaled(S);
     const width = D[0] - A[0];
+    const height = B[1] - A[1];
     const left = [A[0] - width, A[1]];  // L
     const right = [D[0] + width, D[1]]; // R
-    const I = lineIntersection(getLineEquation(left, B), getLineEquation(right, C));
+    // const I = lineIntersection(getLineEquation(left, B), getLineEquation(right, C));
+    const I = [A[0] + width/2, B[1] + height/2];
     if (example) {
         return [[left, I, right], [A, B, C, D]];
     }
     return [left, I, right];
+}
+
+// https://stackoverflow.com/a/901144
+export const getParams = () => new Proxy(new URLSearchParams(window.location.search), {
+    get: (searchParams, prop) => searchParams.get(prop),
+});
+
+export const errorGenerator = (message) => {
+    throw new Error(message);
 }
