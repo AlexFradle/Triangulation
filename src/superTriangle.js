@@ -22,6 +22,7 @@ const POINTS = [[120, 50], [220, 180], [150, 130], [180, 70]];
 const sketch = (p) => {
     let rect = getBoundingBoxPoints(POINTS);
     let [superTri, bigRect] = getSuperTriangle(...rect, true);
+    console.log(rect, superTri)
     let selectedIndex = null;
 
     p.setup = () => {

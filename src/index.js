@@ -4,7 +4,7 @@ import {
     getSuperTriangle,
     getParams,
     errorGenerator,
-    betterMethod, lerpColor, hexToRgb
+    betterMethod, lerpColor, hexToRgb, getBoundingBoxPoints
 } from "./utils";
 
 const params = getParams();
@@ -130,7 +130,7 @@ const makeTriangulation = (points, pointBounds) => {
                 badTriangles.push(triangle);
             }
         }
-        const polygon = [];
+        // const polygon = [];
         for (const triangle of badTriangles) {
             for (const edge of triangle.edges) {
                 // remove current triangle, get all edges
@@ -138,17 +138,19 @@ const makeTriangulation = (points, pointBounds) => {
                                            .flatMap(t => t.edges)
                                            .find(e => compareEdges(e, edge));
                 if (isEdge === undefined) {
-                    polygon.push(edge);
+                    const newTri = new Triangle(edge[0], edge[1], point);
+                    triangulation.push(newTri);
                 }
             }
-        }
-        for (const triangle of badTriangles) {
             triangulation = triangulation.filter(t => t !== triangle);
         }
-        for (const edge of polygon) {
-            const newTri = new Triangle(edge[0], edge[1], point);
-            triangulation.push(newTri);
-        }
+        // for (const triangle of badTriangles) {
+        //     triangulation = triangulation.filter(t => t !== triangle);
+        // }
+        // for (const edge of polygon) {
+        //     const newTri = new Triangle(edge[0], edge[1], point);
+        //     triangulation.push(newTri);
+        // }
     }
     for (const triangle of triangulation) {
         if (triangle.points.some(v => superTriangle.points.includes(v))) {
@@ -158,7 +160,7 @@ const makeTriangulation = (points, pointBounds) => {
     return triangulation;
 }
 
-
+console.log(makeTriangulation([[120, 50], [220, 180], [150, 130], [180, 70]], getBoundingBoxPoints([[120, 50], [220, 180], [150, 130], [180, 70]])))
 
 const sketch = (p) => {
     const points = POINTS;
