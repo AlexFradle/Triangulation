@@ -1,5 +1,9 @@
-#ifndef LINKED_LIST_H
-#define LINKED_LIST_H
+//
+// Created by Alw on 21/05/2022.
+//
+
+#ifndef TRIANGULATION_C_LINKED_LIST_H
+#define TRIANGULATION_C_LINKED_LIST_H
 
 #include "maths.h"
 
@@ -16,5 +20,6 @@ Triangle *pop(Node **head);
 Triangle *remove_by_index(Node **head, int n);
 Triangle *remove_by_value(Node **head, Triangle *val);
 void delete_linked_list(Node *head);
+bool some(Node **head, Triangle *comp_item, bool (*func)(Triangle *, Triangle *), bool exclude_comp_item);
 
-#endif
+#endif //TRIANGULATION_C_LINKED_LIST_H

@@ -1,3 +1,7 @@
+//
+// Created by Alw on 21/05/2022.
+//
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -15,10 +19,10 @@ void make_circumcircle(Triangle *triangle) {
     float Dp = 2 * (Bpx*Cpy - Bpy*Cpx);
     float f = Bpx*Bpx + Bpy*Bpy;
     float g = Cpx*Cpx + Cpy*Cpy;
-    
+
     float Upx = (Cpy*f - Bpy*g) / Dp;
     float Upy = (Bpx*g - Cpx*f) / Dp;
-    
+
     float radius = sqrt(Upx*Upx + Upy*Upy);
     float Ux = Upx + triangle->ax;
     float Uy = Upy + triangle->ay;
@@ -26,6 +30,21 @@ void make_circumcircle(Triangle *triangle) {
     triangle->center_x = Ux;
     triangle->center_y = Uy;
     triangle->radius = radius;
+}
+
+void construct_triangle(
+    Triangle *t,
+    float ax, float ay,
+    float bx, float by,
+    float cx, float cy
+) {
+    t->ax = ax;
+    t->ay = ay;
+    t->bx = bx;
+    t->by = by;
+    t->cx = cx;
+    t->cy = cy;
+    make_circumcircle(t);
 }
 
 bool is_in_circumcircle(Triangle *triangle, float px, float py) {
@@ -43,9 +62,9 @@ bool compare_edges(
 ) {
     if (
         (e1_p1_x == e2_p1_x && e1_p1_y == e2_p1_y &&
-        e1_p2_x == e2_p2_x && e2_p2_y == e2_p2_y) ||
+         e1_p2_x == e2_p2_x && e2_p2_y == e2_p2_y) ||
         (e1_p2_x == e2_p1_x && e1_p2_y == e2_p1_y &&
-        e1_p1_x == e2_p2_x && e1_p1_y == e2_p2_y) 
+         e1_p1_x == e2_p2_x && e1_p1_y == e2_p2_y)
     ) {
         return true;
     }
@@ -59,19 +78,19 @@ void make_super_triangle(
     float rx, float ry,
     float sx, float sy
 ) {
-    float scale = 1.05;
+    float scale = 1.05f;
     float mx = px + (sx - px) / 2;
     float my = py + (qy - py) / 2;
-    
+
     float ax = scale * (px - mx) + mx;
     float ay = scale * (py - my) + my;
-    
+
     float bx = scale * (qx - mx) + mx;
     float by = scale * (qy - my) + my;
-    
+
     float cx = scale * (rx - mx) + mx;
     float cy = scale * (ry - my) + my;
-    
+
     float dx = scale * (sx - mx) + mx;
     float dy = scale * (sy - my) + my;
 
@@ -86,31 +105,89 @@ void make_super_triangle(
     float ix = ax + width/2;
     float iy = by + height/2;
 
-    triangle->ax = left_x;
-    triangle->ay = left_y;
-    triangle->bx = ix;
-    triangle->by = iy;
-    triangle->cx = right_x;
-    triangle->cy = right_y;
+    construct_triangle(
+            triangle,
+            left_x, left_y,
+            ix, iy,
+            right_x, right_y
+    );
 }
 
 void print_triangle(Triangle *triangle) {
     printf(
-        "a = [%f, %f]\nb = [%f, %f]\nc = [%f, %f]\n", 
-        triangle->ax, triangle->ay, 
-        triangle->bx, triangle->by, 
-        triangle->cx, triangle->cy
+            "a = [%f, %f]\nb = [%f, %f]\nc = [%f, %f]\n\n",
+            triangle->ax, triangle->ay,
+            triangle->bx, triangle->by,
+            triangle->cx, triangle->cy
     );
 }
 
 bool compare_triangles(Triangle *t1, Triangle *t2) {
     if (
-        t1->ax == t2->ax &&
-        t1->ay == t2->ay &&
-        t1->bx == t2->bx &&
-        t1->by == t2->by &&
-        t1->cx == t2->cx &&
-        t1->cy == t2->cy
+            t1->ax == t2->ax &&
+            t1->ay == t2->ay &&
+            t1->bx == t2->bx &&
+            t1->by == t2->by &&
+            t1->cx == t2->cx &&
+            t1->cy == t2->cy
+            ) {
+        return true;
+    }
+    return false;
+}
+
+bool share_a_to_b(Triangle *t1, Triangle *t2) {
+    if (
+        compare_edges(
+            t1->ax, t1->ay, t1->bx, t1->by,
+            t2->ax, t2->ay, t2->bx, t2->by
+        )
+    ) {
+        return true;
+    }
+    return false;
+}
+
+bool share_b_to_c(Triangle *t1, Triangle *t2) {
+    if (
+        compare_edges(
+            t1->bx, t1->by, t1->cx, t1->cy,
+            t2->bx, t2->by, t2->cx, t2->cy
+        )
+    ) {
+        return true;
+    }
+    return false;
+}
+
+bool share_c_to_a(Triangle *t1, Triangle *t2) {
+    if (
+        compare_edges(
+            t1->cx, t1->cy, t1->ax, t1->ay,
+            t2->cx, t2->cy, t2->ax, t2->ay
+        )
+    ) {
+        return true;
+    }
+    return false;
+}
+
+bool share_points(Triangle *t1, Triangle *t2) {
+    if (
+        // t1 a in t2
+        (t1->ax == t2->ax && t1->ay == t2->ay) ||
+        (t1->ax == t2->bx && t1->ay == t2->by) ||
+        (t1->ax == t2->cx && t1->ay == t2->cy) ||
+
+        // t1 b in t2
+        (t1->bx == t2->ax && t1->by == t2->ay) ||
+        (t1->bx == t2->bx && t1->by == t2->by) ||
+        (t1->bx == t2->cx && t1->by == t2->cy) ||
+
+        // t1 c in t2
+        (t1->cx == t2->ax && t1->cy == t2->ay) ||
+        (t1->cx == t2->bx && t1->cy == t2->by) ||
+        (t1->cx == t2->cx && t1->cy == t2->cy)
     ) {
         return true;
     }

@@ -130,3 +130,93 @@ export const getParams = () => new Proxy(new URLSearchParams(window.location.sea
 export const errorGenerator = (message) => {
     throw new Error(message);
 }
+
+
+class Triangle {
+    constructor(a, b, c, c1, c2, height) {
+        this.a = a;
+        this.b = b;
+        this.c = c;
+        this.edges = this.getEdges();
+        const {center, radius} = betterMethod(this.a, this.b, this.c);
+        this.circumcenter = center;
+        this.circumradius = radius;
+        this.color = lerpColor(c1, c2, Math.min(...this.points.map(p => p[1])) / height);
+    }
+
+    getEdges() {
+        return [[this.a, this.b], [this.b, this.c], [this.c, this.a]];
+    }
+
+    get points() {
+        return [this.a, this.b, this.c];
+    }
+}
+
+export const makeRandomVector = (max_speed) => {
+    const angle = randint(0, 360) * (Math.PI / 180);
+    return {
+        unit: {x: Math.cos(angle), y: Math.sin(angle)},
+        magnitude: randint(1, max_speed) / 10
+    }
+}
+
+export const makeTriangulation = (points, pointBounds, options) => {
+    const compareEdges = (e1, e2) => {
+        return (
+            e1[0][0] === e2[0][0] &&
+            e1[0][1] === e2[0][1] &&
+            e1[1][0] === e2[1][0] &&
+            e1[1][1] === e2[1][1]
+        ) || (
+            e1[1][0] === e2[0][0] &&
+            e1[1][1] === e2[0][1] &&
+            e1[0][0] === e2[1][0] &&
+            e1[0][1] === e2[1][1]
+        )
+    }
+    const superTriangle = new Triangle(...getSuperTriangle(...pointBounds), options.c1, options.c2, options.height);
+
+    let triangulation = [];
+    triangulation.push(superTriangle);
+    for (const point of points) {
+        console.log(`[${point[0]},${point[1]}]`)
+        const badTriangles = [];
+        for (const triangle of triangulation) {
+            if (dist(point, triangle.circumcenter) < triangle.circumradius) {
+                badTriangles.push(triangle);
+            }
+        }
+        // const polygon = [];
+        for (const triangle of badTriangles) {
+            console.log(triangle);
+            for (const edge of triangle.edges) {
+                // remove current triangle, get all edges
+                const isEdge = badTriangles.filter(t => t !== triangle)
+                                           .flatMap(t => t.edges)
+                                           .some(e => compareEdges(e, edge));
+                if (isEdge === false) {
+                    const newTri = new Triangle(edge[0], edge[1], point, options.c1, options.c2, options.height);
+                    triangulation.push(newTri);
+                    // console.log(newTri);
+                }
+            }
+            triangulation = triangulation.filter(t => t !== triangle);
+        }
+        // for (const triangle of badTriangles) {
+        //     triangulation = triangulation.filter(t => t !== triangle);
+        // }
+        // for (const edge of polygon) {
+        //     const newTri = new Triangle(edge[0], edge[1], point);
+        //     triangulation.push(newTri);
+        // }
+    }
+    // console.log(triangulation);
+    for (const triangle of triangulation) {
+        if (triangle.points.some(v => superTriangle.points.includes(v))) {
+            triangulation = triangulation.filter(t => t !== triangle);
+        }
+    }
+    return triangulation;
+}
+

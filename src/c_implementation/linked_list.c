@@ -1,12 +1,19 @@
+//
+// Created by Alw on 21/05/2022.
+//
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "linked_list.h"
 
 void foreach(Node **head, void (*func)(Triangle *)) {
     Node *current = *head;
+    int index = 0;
     while (current != NULL) {
+        printf("-----%d-----\n", index);
         (*func)(current->val);
         current = current->next;
+        index++;
     }
 }
 
@@ -109,7 +116,21 @@ void delete_linked_list(Node *head) {
     Node *next = head;
     while (cur) {
         next = cur->next;
+//        free(cur->val);
         free(cur);
         cur = next;
     }
+}
+
+bool some(Node **head, Triangle *comp_item, bool (*func)(Triangle *, Triangle *), bool exclude_comp_item) {
+    Node *current = *head;
+    while (current != NULL) {
+        if (!(compare_triangles(comp_item, current->val) && exclude_comp_item)) {
+            if (func(comp_item, current->val)) {
+                return true;
+            }
+        }
+        current = current->next;
+    }
+    return false;
 }

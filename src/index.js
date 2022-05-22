@@ -4,7 +4,7 @@ import {
     getSuperTriangle,
     getParams,
     errorGenerator,
-    betterMethod, lerpColor, hexToRgb, getBoundingBoxPoints
+    betterMethod, lerpColor, hexToRgb, getBoundingBoxPoints, makeTriangulation, makeRandomVector
 } from "./utils";
 
 const params = getParams();
@@ -76,96 +76,10 @@ const POINTS = [
     ...Array(NUM_OF_POINTS).fill(0).map(_ => [randint(BOUNDS[0][0], BOUNDS_WIDTH), randint(BOUNDS[0][1], BOUNDS_HEIGHT)])
 ];
 
-class Triangle {
-    constructor(a, b, c) {
-        this.a = a;
-        this.b = b;
-        this.c = c;
-        this.edges = this.getEdges();
-        const {center, radius} = betterMethod(this.a, this.b, this.c);
-        this.circumcenter = center;
-        this.circumradius = radius;
-        this.color = lerpColor(COLOR1, COLOR2, Math.min(...this.points.map(p => p[1])) / HEIGHT);
-    }
-
-    getEdges() {
-        return [[this.a, this.b], [this.b, this.c], [this.c, this.a]];
-    }
-
-    get points() {
-        return [this.a, this.b, this.c];
-    }
-}
-
-const makeRandomVector = () => {
-    const angle = randint(0, 360) * (Math.PI / 180);
-    return {
-        unit: {x: Math.cos(angle), y: Math.sin(angle)},
-        magnitude: randint(1, MAX_SPEED) / 10
-    }
-}
-
-const makeTriangulation = (points, pointBounds) => {
-    const compareEdges = (e1, e2) => {
-        return (
-            e1[0][0] === e2[0][0] &&
-            e1[0][1] === e2[0][1] &&
-            e1[1][0] === e2[1][0] &&
-            e1[1][1] === e2[1][1]
-        ) || (
-            e1[1][0] === e2[0][0] &&
-            e1[1][1] === e2[0][1] &&
-            e1[0][0] === e2[1][0] &&
-            e1[0][1] === e2[1][1]
-        )
-    }
-    const superTriangle = new Triangle(...getSuperTriangle(...pointBounds));
-
-    let triangulation = [];
-    triangulation.push(superTriangle);
-    for (const point of points) {
-        const badTriangles = [];
-        for (const triangle of triangulation) {
-            if (dist(point, triangle.circumcenter) < triangle.circumradius) {
-                badTriangles.push(triangle);
-            }
-        }
-        // const polygon = [];
-        for (const triangle of badTriangles) {
-            for (const edge of triangle.edges) {
-                // remove current triangle, get all edges
-                const isEdge = badTriangles.filter(t => t !== triangle)
-                                           .flatMap(t => t.edges)
-                                           .find(e => compareEdges(e, edge));
-                if (isEdge === undefined) {
-                    const newTri = new Triangle(edge[0], edge[1], point);
-                    triangulation.push(newTri);
-                }
-            }
-            triangulation = triangulation.filter(t => t !== triangle);
-        }
-        // for (const triangle of badTriangles) {
-        //     triangulation = triangulation.filter(t => t !== triangle);
-        // }
-        // for (const edge of polygon) {
-        //     const newTri = new Triangle(edge[0], edge[1], point);
-        //     triangulation.push(newTri);
-        // }
-    }
-    for (const triangle of triangulation) {
-        if (triangle.points.some(v => superTriangle.points.includes(v))) {
-            triangulation = triangulation.filter(t => t !== triangle);
-        }
-    }
-    return triangulation;
-}
-
-console.log(makeTriangulation([[120, 50], [220, 180], [150, 130], [180, 70]], getBoundingBoxPoints([[120, 50], [220, 180], [150, 130], [180, 70]])))
-
 const sketch = (p) => {
     const points = POINTS;
-    const pointsVectors = Array(POINTS.length).fill(0).map(_ => makeRandomVector());
-    let triangles = makeTriangulation(POINTS, BOUNDS);
+    const pointsVectors = Array(POINTS.length).fill(0).map(_ => makeRandomVector(MAX_SPEED));
+    let triangles = makeTriangulation(POINTS, BOUNDS, {c1: COLOR1, c2: COLOR2, height: HEIGHT});
     let selectedIndex = null;
 
     const movePoints = () => {
@@ -193,7 +107,7 @@ const sketch = (p) => {
 
     p.draw = () => {
         p.background(32);
-        triangles = makeTriangulation(POINTS, BOUNDS);
+        triangles = makeTriangulation(POINTS, BOUNDS,{c1: COLOR1, c2: COLOR2, height: HEIGHT});
         p.noFill();
         p.stroke("red");
         if (MOVE_POINTS) movePoints();
