@@ -7,7 +7,6 @@
 // https://www.learn-c.org/en/Linked_lists
 
 void make_triangulation(float points[], float point_bounds[], int number_of_points) {
-    // const superTriangle = new Triangle(...getSuperTriangle(...pointBounds));
     Triangle super_triangle;
     make_super_triangle(
             &super_triangle,
@@ -18,44 +17,34 @@ void make_triangulation(float points[], float point_bounds[], int number_of_poin
     );
     // print_triangle(&super_triangle);
 
-    // let triangulation = [];
     Node *triangulation_head = (Node *) malloc(sizeof(Node));
 
     // https://stackoverflow.com/questions/13284033/copying-structure-in-c-with-assignment-instead-of-memcpy
     Triangle *super_triangle_copy = (Triangle *) malloc(sizeof(Triangle));
     memcpy(super_triangle_copy, &super_triangle, sizeof(Triangle));
 
-    // triangulation.push(superTriangle);
     triangulation_head->val = super_triangle_copy;
     triangulation_head->next = NULL;
 
-    // for (const point of points)
     for (int i = 0; i < number_of_points * 2; i += 2) {
-        printf("[%f,%f]\n", points[i], points[i+1]);
-        // const badTriangles = [];
         Node *bad_triangles_head = (Node *) malloc(sizeof(Node));
         bad_triangles_head->val = NULL;
         bad_triangles_head->next = NULL;
 
-        // for (const triangle of triangulation)
-        Node *current = triangulation_head;
-        while (current != NULL) {
-            // if (dist(point, triangle.circumcenter) < triangle.circumradius)
-            if (is_in_circumcircle(current->val, points[i], points[i + 1])) {
-                // badTriangles.push(triangle)
+        Node *trig_current = triangulation_head;
+        while (trig_current != NULL) {
+            if (is_in_circumcircle(trig_current->val, points[i], points[i + 1])) {
                 if (bad_triangles_head->val == NULL) {
-                    bad_triangles_head->val = current->val;
+                    bad_triangles_head->val = trig_current->val;
                 } else {
-                    push(&bad_triangles_head, current->val);
+                    push(&bad_triangles_head, trig_current->val);
                 }
             }
-            current = current->next;
+            trig_current = trig_current->next;
         }
 
-        // for (const triangle of badTriangles)
-        current = bad_triangles_head;
+        Node *current = bad_triangles_head;
         while (current != NULL) {
-            print_triangle(current->val);
             // a to b
             if (!some(&bad_triangles_head, current->val, &share_a_to_b, true)) {
                 Triangle *new_triangle_ab = malloc(sizeof(Triangle));
@@ -66,8 +55,6 @@ void make_triangulation(float points[], float point_bounds[], int number_of_poin
                     points[i], points[i  +1]
                 );
                 push(&triangulation_head, new_triangle_ab);
-//                printf("-----AB-----\n");
-//                print_triangle(new_triangle_ab);
             }
             // b to c
             if (!some(&bad_triangles_head, current->val, &share_b_to_c, true)) {
@@ -79,8 +66,6 @@ void make_triangulation(float points[], float point_bounds[], int number_of_poin
                     points[i], points[i + 1]
                 );
                 push(&triangulation_head, new_triangle_bc);
-//                printf("-----BC-----\n");
-//                print_triangle(new_triangle_bc);
             }
             // c to a
             if (!some(&bad_triangles_head, current->val, &share_c_to_a, true)) {
@@ -92,33 +77,29 @@ void make_triangulation(float points[], float point_bounds[], int number_of_poin
                     points[i], points[i + 1]
                 );
                 push(&triangulation_head, new_triangle_ca);
-//                printf("-----CA-----\n");
-//                print_triangle(new_triangle_ca);
             }
 
-            // triangulation = triangulation.filter(t => t !== triangle);
             free(remove_by_value(&triangulation_head, current->val));
 
             current = current->next;
         }
-        delete_linked_list(bad_triangles_head);
+        // every bad triangle is freed in the loop above
+        delete_linked_list(bad_triangles_head, false);
     }
 
     Node *outer_current = triangulation_head;
-    Node *final_ll = (Node *) malloc(sizeof(Node));
-    memcpy(final_ll, triangulation_head, sizeof(Node));
-
     while (outer_current != NULL) {
         if (share_points(outer_current->val, &super_triangle)) {
             Triangle *temp_val = outer_current->val;
             outer_current = outer_current->next;
-            free(remove_by_value(&final_ll, temp_val));
+            free(remove_by_value(&triangulation_head, temp_val));
         } else {
             outer_current = outer_current->next;
         }
     }
 
-    foreach(&final_ll, &print_triangle);
+    foreach(&triangulation_head, &print_triangle);
+    delete_linked_list(triangulation_head, true);
 }
 
 int main() {

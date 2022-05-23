@@ -141,6 +141,14 @@ bool share_a_to_b(Triangle *t1, Triangle *t2) {
         compare_edges(
             t1->ax, t1->ay, t1->bx, t1->by,
             t2->ax, t2->ay, t2->bx, t2->by
+        ) ||
+        compare_edges(
+            t1->ax, t1->ay, t1->bx, t1->by,
+            t2->bx, t2->by, t2->cx, t2->cy
+        ) ||
+        compare_edges(
+            t1->ax, t1->ay, t1->bx, t1->by,
+            t2->cx, t2->cy, t2->ax, t2->ay
         )
     ) {
         return true;
@@ -152,7 +160,15 @@ bool share_b_to_c(Triangle *t1, Triangle *t2) {
     if (
         compare_edges(
             t1->bx, t1->by, t1->cx, t1->cy,
+            t2->ax, t2->ay, t2->bx, t2->by
+        ) ||
+        compare_edges(
+            t1->bx, t1->by, t1->cx, t1->cy,
             t2->bx, t2->by, t2->cx, t2->cy
+        ) ||
+        compare_edges(
+            t1->bx, t1->by, t1->cx, t1->cy,
+            t2->cx, t2->cy, t2->ax, t2->ay
         )
     ) {
         return true;
@@ -162,6 +178,14 @@ bool share_b_to_c(Triangle *t1, Triangle *t2) {
 
 bool share_c_to_a(Triangle *t1, Triangle *t2) {
     if (
+        compare_edges(
+            t1->cx, t1->cy, t1->ax, t1->ay,
+            t2->ax, t2->ay, t2->bx, t2->by
+        ) ||
+        compare_edges(
+            t1->cx, t1->cy, t1->ax, t1->ay,
+            t2->bx, t2->by, t2->cx, t2->cy
+        ) ||
         compare_edges(
             t1->cx, t1->cy, t1->ax, t1->ay,
             t2->cx, t2->cy, t2->ax, t2->ay
@@ -193,3 +217,4 @@ bool share_points(Triangle *t1, Triangle *t2) {
     }
     return false;
 }
+

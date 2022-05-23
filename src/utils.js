@@ -161,6 +161,14 @@ export const makeRandomVector = (max_speed) => {
     }
 }
 
+const print_triangle = (t) => console.log(
+    `
+    a = [${t.a[0]}, ${t.a[1]}]
+    b = [${t.b[0]}, ${t.b[1]}]
+    c = [${t.c[0]}, ${t.c[1]}]
+    `
+);
+
 export const makeTriangulation = (points, pointBounds, options) => {
     const compareEdges = (e1, e2) => {
         return (
@@ -189,7 +197,7 @@ export const makeTriangulation = (points, pointBounds, options) => {
         }
         // const polygon = [];
         for (const triangle of badTriangles) {
-            console.log(triangle);
+            print_triangle(triangle);
             for (const edge of triangle.edges) {
                 // remove current triangle, get all edges
                 const isEdge = badTriangles.filter(t => t !== triangle)
@@ -198,7 +206,7 @@ export const makeTriangulation = (points, pointBounds, options) => {
                 if (isEdge === false) {
                     const newTri = new Triangle(edge[0], edge[1], point, options.c1, options.c2, options.height);
                     triangulation.push(newTri);
-                    // console.log(newTri);
+                    print_triangle(newTri);
                 }
             }
             triangulation = triangulation.filter(t => t !== triangle);

@@ -111,12 +111,12 @@ Triangle *remove_by_value(Node **head, Triangle *val) {
     return NULL;
 }
 
-void delete_linked_list(Node *head) {
+void delete_linked_list(Node *head, bool free_val) {
     Node *cur = head;
     Node *next = head;
-    while (cur) {
+    while (cur != NULL) {
         next = cur->next;
-//        free(cur->val);
+        if (free_val) free(cur->val);
         free(cur);
         cur = next;
     }
