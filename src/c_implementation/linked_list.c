@@ -18,7 +18,7 @@ void foreach(Node **head, void (*func)(Triangle *)) {
 }
 
 void prepend(Node **head, Triangle *val) {
-    Node *new_node = (Node *) malloc(sizeof(Node));
+    Node *new_node = malloc(sizeof(Node));
     new_node->val = val;
     new_node->next = *head;
     *head = new_node;
@@ -29,7 +29,7 @@ void push(Node **head, Triangle *val) {
     while (current->next != NULL) {
         current = current->next;
     }
-    current->next = (Node *) malloc(sizeof(Node));
+    current->next = malloc(sizeof(Node));
     current->next->val = val;
     current->next->next = NULL;
 }

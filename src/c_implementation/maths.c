@@ -7,8 +7,8 @@
 #include <math.h>
 #include "maths.h"
 
-float dist(float x1, float y1, float x2, float y2) {
-    return sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2));
+float dist_sq(float x1, float y1, float x2, float y2) {
+    return pow(x2 - x1, 2) + pow(y2 - y1, 2);
 }
 
 void make_circumcircle(Triangle *triangle) {
@@ -47,11 +47,83 @@ void construct_triangle(
     make_circumcircle(t);
 }
 
-bool is_in_circumcircle(Triangle *triangle, float px, float py) {
-    if (dist(px, py, triangle->center_x, triangle->center_y) < triangle->radius) {
-        return true;
+bool is_in_circumcircle(Triangle *super_triangle, Triangle *triangle, float px, float py) {
+    // abomination v2
+    int share = share_points(triangle, super_triangle);
+    float x1, y1, x2, y2;
+    print_triangle(triangle);
+    switch (share) {
+        case 0: {
+            printf("no share\n");
+            return dist_sq(px, py, triangle->center_x, triangle->center_y) < triangle->radius * triangle->radius;
+        }
+        case 1: {
+            printf("share a\n");
+            x1 = triangle->bx;
+            y1 = triangle->by;
+            x2 = triangle->cx;
+            y2 = triangle->cy;
+            break;
+        }
+        case 2: {
+            printf("share b\n");
+            x1 = triangle->ax;
+            y1 = triangle->ay;
+            x2 = triangle->cx;
+            y2 = triangle->cy;
+            break;
+        }
+        case 3: {
+            printf("share c\n");
+            x1 = triangle->ax;
+            y1 = triangle->ay;
+            x2 = triangle->bx;
+            y2 = triangle->by;
+            break;
+        }
+        case 4: {
+            printf("share a and b\n");
+            x1 = triangle->cx;
+            y1 = triangle->cy;
+            x2 = triangle->ax - triangle->bx + x1;
+            y2 = triangle->ay - triangle->by + y1;
+            break;
+        }
+        case 5: {
+            printf("share b and c\n");
+            x1 = triangle->ax;
+            y1 = triangle->ay;
+            x2 = triangle->bx - triangle->cx + x1;
+            y2 = triangle->by - triangle->cy + y1;
+            break;
+        }
+        case 6: {
+            printf("share a and c\n");
+            x1 = triangle->bx;
+            y1 = triangle->by;
+            x2 = triangle->ax - triangle->cx + x1;
+            y2 = triangle->ay - triangle->cy + y1;
+            break;
+        }
+        case 7: {
+            printf("share a, b, and c\n");
+            return true;
+        }
+        default: {
+            printf("how did you get here?\n");
+            return true;
+        }
     }
-    return false;
+    float dp = (px - x1) * (y2 - y1) - (py - y1) * (x2 - x1);
+    printf("dp = %f\n", dp);
+    float dv;
+    if (share == 1 || share == 4 || share == 6) dv = (triangle->ax - x1) * (y2 - y1) - (triangle->ay - y1) * (x2 - x1);
+    else if (share == 2 || share == 5) dv = (triangle->bx - x1) * (y2 - y1) - (triangle->by - y1) * (x2 - x1);
+    else dv = (triangle->cx - x1) * (y2 - y1) - (triangle->cy - y1) * (x2 - x1);
+    int p_side = dp < 0 ? -1 : (dp > 0 ? 1 : 0);
+    int v_side = dv < 0 ? -1 : (dv > 0 ? 1 : 0);
+    printf("pSide = %d, vSide = %d\n", p_side, v_side);
+    return p_side == v_side;
 }
 
 bool compare_edges(
@@ -115,7 +187,7 @@ void make_super_triangle(
 
 void print_triangle(Triangle *triangle) {
     printf(
-            "a = [%f, %f]\nb = [%f, %f]\nc = [%f, %f]\n\n",
+            "a = [%f, %f]\nb = [%f, %f]\nc = [%f, %f]\n",
             triangle->ax, triangle->ay,
             triangle->bx, triangle->by,
             triangle->cx, triangle->cy
@@ -196,25 +268,50 @@ bool share_c_to_a(Triangle *t1, Triangle *t2) {
     return false;
 }
 
-bool share_points(Triangle *t1, Triangle *t2) {
+int share_points(Triangle *t1, Triangle *t2) {
+    // none = 0
+    // a = 1
+    // b = 2
+    // c = 3
+    // a, b = 4
+    // b, c = 5
+    // a, c = 6
+    // a, b, c = 7
+    bool share_a = false,
+         share_b = false,
+         share_c = false;
     if (
         // t1 a in t2
         (t1->ax == t2->ax && t1->ay == t2->ay) ||
         (t1->ax == t2->bx && t1->ay == t2->by) ||
-        (t1->ax == t2->cx && t1->ay == t2->cy) ||
-
+        (t1->ax == t2->cx && t1->ay == t2->cy)
+    ) {
+        share_a = true;
+    }
+    if (
         // t1 b in t2
         (t1->bx == t2->ax && t1->by == t2->ay) ||
         (t1->bx == t2->bx && t1->by == t2->by) ||
-        (t1->bx == t2->cx && t1->by == t2->cy) ||
-
+        (t1->bx == t2->cx && t1->by == t2->cy)
+    ) {
+        share_b = true;
+    }
+    if (
         // t1 c in t2
         (t1->cx == t2->ax && t1->cy == t2->ay) ||
         (t1->cx == t2->bx && t1->cy == t2->by) ||
         (t1->cx == t2->cx && t1->cy == t2->cy)
     ) {
-        return true;
+        share_c = true;
     }
-    return false;
+    // kill me?
+    if (!(share_a || share_b || share_c)) return 0;
+    if (share_a && share_b && share_c) return 7;
+    if (share_a && share_b) return 4;
+    if (share_b && share_c) return 5;
+    if (share_a && share_c) return 6;
+    if (share_a) return 1;
+    if (share_b) return 2;
+    if (share_c) return 3;
 }
 

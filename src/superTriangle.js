@@ -1,4 +1,10 @@
-import {dist, errorGenerator, getBoundingBoxPoints, getParams, getSuperTriangle, makeTriangulation} from "./utils";
+import {
+    dist,
+    errorGenerator,
+    getBoundingBoxPoints,
+    getParams,
+    getSuperTriangle,
+} from "./utils";
 
 const params = getParams();
 
@@ -18,14 +24,9 @@ const HEIGHT = params.height !== null
             : errorGenerator("incorrect height")))
     : 1000;
 
-console.log(
-    makeTriangulation(
-        [[120, 50], [220, 180], [150, 130], [180, 70]],
-        getBoundingBoxPoints([[120, 50], [220, 180], [150, 130], [180, 70]]),
-        {c1: [0, 32, 0], c2: [0, 255, 0], HEIGHT}
-    )
-);
+
 const POINTS = [[120, 50], [220, 180], [150, 130], [180, 70]];
+
 const sketch = (p) => {
     let rect = getBoundingBoxPoints(POINTS);
     let [superTri, bigRect] = getSuperTriangle(...rect, true);
@@ -73,4 +74,5 @@ const sketch = (p) => {
         }
     }
 }
+
 new p5(sketch, "canvas");

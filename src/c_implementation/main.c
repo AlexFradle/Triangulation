@@ -17,23 +17,23 @@ void make_triangulation(float points[], float point_bounds[], int number_of_poin
     );
     // print_triangle(&super_triangle);
 
-    Node *triangulation_head = (Node *) malloc(sizeof(Node));
+    Node *triangulation_head = malloc(sizeof(Node));
 
     // https://stackoverflow.com/questions/13284033/copying-structure-in-c-with-assignment-instead-of-memcpy
-    Triangle *super_triangle_copy = (Triangle *) malloc(sizeof(Triangle));
+    Triangle *super_triangle_copy = malloc(sizeof(Triangle));
     memcpy(super_triangle_copy, &super_triangle, sizeof(Triangle));
 
     triangulation_head->val = super_triangle_copy;
     triangulation_head->next = NULL;
 
     for (int i = 0; i < number_of_points * 2; i += 2) {
-        Node *bad_triangles_head = (Node *) malloc(sizeof(Node));
+        Node *bad_triangles_head = malloc(sizeof(Node));
         bad_triangles_head->val = NULL;
         bad_triangles_head->next = NULL;
 
         Node *trig_current = triangulation_head;
         while (trig_current != NULL) {
-            if (is_in_circumcircle(trig_current->val, points[i], points[i + 1])) {
+            if (is_in_circumcircle(&super_triangle, trig_current->val, points[i], points[i + 1])) {
                 if (bad_triangles_head->val == NULL) {
                     bad_triangles_head->val = trig_current->val;
                 } else {
@@ -79,12 +79,12 @@ void make_triangulation(float points[], float point_bounds[], int number_of_poin
                 push(&triangulation_head, new_triangle_ca);
             }
 
-            free(remove_by_value(&triangulation_head, current->val));
+            // only remove node from triangulation, don't free yet because it needs to be checked in bad triangles
+            remove_by_value(&triangulation_head, current->val);
 
             current = current->next;
         }
-        // every bad triangle is freed in the loop above
-        delete_linked_list(bad_triangles_head, false);
+        delete_linked_list(bad_triangles_head, true);
     }
 
     Node *outer_current = triangulation_head;
@@ -103,8 +103,8 @@ void make_triangulation(float points[], float point_bounds[], int number_of_poin
 }
 
 int main() {
-    float ps[] = {120, 50, 220, 180, 150, 130, 180, 70};
-    float pbs[] = {120, 50, 120, 180, 220, 180, 220, 50};
+    float ps[] = {120, 50, 217, 201, 165, 132, 152, 93};
+    float pbs[] = {120, 50, 120, 201, 217, 201, 217, 50};
     make_triangulation(ps, pbs, 4);
     return 0;
 }

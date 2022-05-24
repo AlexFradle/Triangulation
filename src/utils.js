@@ -2,6 +2,8 @@ export const cosineRule = (a, b, c) => Math.acos((b*b + c*c - a*a) / (2 * b * c)
 
 export const dist = (p1, p2) => Math.sqrt(Math.pow(p2[0] - p1[0], 2) + Math.pow(p2[1] - p1[1], 2));
 
+export const distSq = (p1, p2) => Math.pow(p2[0] - p1[0], 2) + Math.pow(p2[1] - p1[1], 2);
+
 export const circumcenter = (a, b, c) => {
     const ab = dist(a, b);
     const ac = dist(a, c);
@@ -98,6 +100,8 @@ export const getBoundingBoxPoints = (points) => {
     ]
 }
 
+export const getScaled = (v, m, scale) => [scale * (v[0] - m[0]) + m[0], scale * (v[1] - m[1]) + m[1]];
+
 export const getSuperTriangle = (P, Q, R, S, example = false) => {
     // Vertex order:
     // b---c
@@ -105,11 +109,10 @@ export const getSuperTriangle = (P, Q, R, S, example = false) => {
     // a---d
     const scale = 1.05;
     const M = [P[0] + (S[0] - P[0]) / 2, P[1] + (Q[1] - P[1]) / 2];
-    const getScaled = (v) => [scale * (v[0] - M[0]) + M[0], scale * (v[1] - M[1]) + M[1]];
-    const A = getScaled(P);
-    const B = getScaled(Q);
-    const C = getScaled(R);
-    const D = getScaled(S);
+    const A = getScaled(P, M, scale);
+    const B = getScaled(Q, M, scale);
+    const C = getScaled(R, M, scale);
+    const D = getScaled(S, M, scale);
     const width = D[0] - A[0];
     const height = B[1] - A[1];
     const left = [A[0] - width, A[1]];  // L
@@ -183,45 +186,70 @@ export const makeTriangulation = (points, pointBounds, options) => {
             e1[0][1] === e2[1][1]
         )
     }
+
+    const inCircumcircle = (triangle, p) => {
+        // ABSOLUTE ABOMINATION !!!!
+        // but it does work correctly
+        // https://math.stackexchange.com/questions/4001660/bowyer-watson-algorithm-for-delaunay-triangulation-fails-when-three-vertices-ap
+        // https://stackoverflow.com/questions/30741459/bowyer-watson-algorithm-how-to-fill-holes-left-by-removing-triangles-with-sup/36992359#36992359
+        // https://stackoverflow.com/questions/58203812/bowyer-watson-triangulates-incorrectly-when-trying-to-implement-circumcircle-cal
+
+        const t = triangle.points.map((v, ind) => ({name: String.fromCharCode(65 + ind), point: v}));
+        const pointsAtInf = t.filter(({point}) => superTriangle.points.some(s => point[0] === s[0] && point[1] === s[1]));
+        const finite = t.filter(obj => !pointsAtInf.includes(obj));
+
+        // https://math.stackexchange.com/questions/274712/calculate-on-which-side-of-a-straight-line-is-a-given-point-located
+        const d = (x1, y1, x2, y2, px, py) => (px - x1) * (y2 - y1) - (py - y1) * (x2 - x1);
+
+        const side = (d) => d < 0 ? -1 : (d > 0 ? 1 : 0);
+        let x1, y1, x2, y2;
+        print_triangle(triangle);
+        if (pointsAtInf.length === 0) {
+            return distSq(p, triangle.circumcenter) < triangle.circumradius * triangle.circumradius;
+        } else if (pointsAtInf.length === 1) {
+            [[x1, y1], [x2, y2]] = finite.map(f => f.point);
+
+        } else if (pointsAtInf.length === 2) {
+            [x1, y1] = finite[0].point;
+            x2 = pointsAtInf[0].point[0] - pointsAtInf[1].point[0] + x1;
+            y2 = pointsAtInf[0].point[1] - pointsAtInf[1].point[1] + y1;
+        } else {
+            return true;
+        }
+        const pSide = side(d(x1, y1, x2, y2, p[0], p[1]));
+        const vSide = side(d(x1, y1, x2, y2, ...pointsAtInf[0].point));
+        return pSide === vSide;
+    }
+
     const superTriangle = new Triangle(...getSuperTriangle(...pointBounds), options.c1, options.c2, options.height);
 
     let triangulation = [];
     triangulation.push(superTriangle);
     for (const point of points) {
-        console.log(`[${point[0]},${point[1]}]`)
         const badTriangles = [];
         for (const triangle of triangulation) {
-            if (dist(point, triangle.circumcenter) < triangle.circumradius) {
+            // use simple dist for better speed but isn't accurate in cases where the points are almost a line
+            // if (distSq(point, triangle.circumcenter) < triangle.circumradius * triangle.circumradius) {
+            if (inCircumcircle(triangle, point)) {
                 badTriangles.push(triangle);
             }
         }
-        // const polygon = [];
         for (const triangle of badTriangles) {
-            print_triangle(triangle);
             for (const edge of triangle.edges) {
-                // remove current triangle, get all edges
                 const isEdge = badTriangles.filter(t => t !== triangle)
                                            .flatMap(t => t.edges)
                                            .some(e => compareEdges(e, edge));
                 if (isEdge === false) {
-                    const newTri = new Triangle(edge[0], edge[1], point, options.c1, options.c2, options.height);
-                    triangulation.push(newTri);
-                    print_triangle(newTri);
+                    triangulation.push(
+                        new Triangle(edge[0], edge[1], point, options.c1, options.c2, options.height)
+                    );
                 }
             }
             triangulation = triangulation.filter(t => t !== triangle);
         }
-        // for (const triangle of badTriangles) {
-        //     triangulation = triangulation.filter(t => t !== triangle);
-        // }
-        // for (const edge of polygon) {
-        //     const newTri = new Triangle(edge[0], edge[1], point);
-        //     triangulation.push(newTri);
-        // }
     }
-    // console.log(triangulation);
     for (const triangle of triangulation) {
-        if (triangle.points.some(v => superTriangle.points.includes(v))) {
+        if (triangle.points.some(v => superTriangle.points.some(s => v[0] === s[0] && v[1] === s[1] ))) {
             triangulation = triangulation.filter(t => t !== triangle);
         }
     }
