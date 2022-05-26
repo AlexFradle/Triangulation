@@ -6,7 +6,7 @@
 
 // https://www.learn-c.org/en/Linked_lists
 
-void make_triangulation(float points[], float point_bounds[], int number_of_points) {
+float *make_triangulation(float points[], float point_bounds[], int number_of_points) {
     Triangle super_triangle;
     make_super_triangle(
             &super_triangle,
@@ -98,14 +98,37 @@ void make_triangulation(float points[], float point_bounds[], int number_of_poin
         }
     }
 
-    foreach(&triangulation_head, &print_triangle);
+    unsigned int len = length(&triangulation_head);
+    float *points_arr = malloc(sizeof(float) * len * 6);
+    points_arr[0] = (float) len * 6;
+    int index = 1;
+    Node *ll_current = triangulation_head;
+    while (ll_current != NULL) {
+        points_arr[index] = ll_current->val->ax;
+        points_arr[index + 1] = ll_current->val->ay;
+        points_arr[index + 2] = ll_current->val->bx;
+        points_arr[index + 3] = ll_current->val->by;
+        points_arr[index + 4] = ll_current->val->cx;
+        points_arr[index + 5] = ll_current->val->cy;
+        index += 6;
+        ll_current = ll_current->next;
+    }
     delete_linked_list(triangulation_head, true);
+    return points_arr;
 }
 
-int main() {
-    float ps[] = {120, 50, 217, 201, 165, 132, 152, 93};
-    float pbs[] = {120, 50, 120, 201, 217, 201, 217, 50};
-    make_triangulation(ps, pbs, 4);
-    return 0;
-}
+//void print_array(float **arr, int len) {
+//    for (int i = 0; i < len; i++) {
+//        printf("%f\n", (*arr)[i]);
+//    }
+//}
+//
+//int main() {
+//    float ps[] = {120, 50, 217, 201, 165, 132, 152, 93};
+//    float pbs[] = {120, 50, 120, 201, 217, 201, 217, 50};
+//    float *trig_arr = make_triangulation(ps, pbs, 4);
+//    print_array(&trig_arr, 12);
+//    free(trig_arr);
+//    return 0;
+//}
 

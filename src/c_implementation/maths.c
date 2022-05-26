@@ -51,14 +51,13 @@ bool is_in_circumcircle(Triangle *super_triangle, Triangle *triangle, float px, 
     // abomination v2
     int share = share_points(triangle, super_triangle);
     float x1, y1, x2, y2;
-    print_triangle(triangle);
     switch (share) {
         case 0: {
-            printf("no share\n");
+            // no share
             return dist_sq(px, py, triangle->center_x, triangle->center_y) < triangle->radius * triangle->radius;
         }
         case 1: {
-            printf("share a\n");
+            // share a
             x1 = triangle->bx;
             y1 = triangle->by;
             x2 = triangle->cx;
@@ -66,7 +65,7 @@ bool is_in_circumcircle(Triangle *super_triangle, Triangle *triangle, float px, 
             break;
         }
         case 2: {
-            printf("share b\n");
+            // share b
             x1 = triangle->ax;
             y1 = triangle->ay;
             x2 = triangle->cx;
@@ -74,7 +73,7 @@ bool is_in_circumcircle(Triangle *super_triangle, Triangle *triangle, float px, 
             break;
         }
         case 3: {
-            printf("share c\n");
+            // share c
             x1 = triangle->ax;
             y1 = triangle->ay;
             x2 = triangle->bx;
@@ -82,7 +81,7 @@ bool is_in_circumcircle(Triangle *super_triangle, Triangle *triangle, float px, 
             break;
         }
         case 4: {
-            printf("share a and b\n");
+            // share a and b
             x1 = triangle->cx;
             y1 = triangle->cy;
             x2 = triangle->ax - triangle->bx + x1;
@@ -90,7 +89,7 @@ bool is_in_circumcircle(Triangle *super_triangle, Triangle *triangle, float px, 
             break;
         }
         case 5: {
-            printf("share b and c\n");
+            // share b and c
             x1 = triangle->ax;
             y1 = triangle->ay;
             x2 = triangle->bx - triangle->cx + x1;
@@ -98,7 +97,7 @@ bool is_in_circumcircle(Triangle *super_triangle, Triangle *triangle, float px, 
             break;
         }
         case 6: {
-            printf("share a and c\n");
+            // share a and c
             x1 = triangle->bx;
             y1 = triangle->by;
             x2 = triangle->ax - triangle->cx + x1;
@@ -106,7 +105,7 @@ bool is_in_circumcircle(Triangle *super_triangle, Triangle *triangle, float px, 
             break;
         }
         case 7: {
-            printf("share a, b, and c\n");
+            // share a, b, and c
             return true;
         }
         default: {
@@ -115,14 +114,12 @@ bool is_in_circumcircle(Triangle *super_triangle, Triangle *triangle, float px, 
         }
     }
     float dp = (px - x1) * (y2 - y1) - (py - y1) * (x2 - x1);
-    printf("dp = %f\n", dp);
     float dv;
     if (share == 1 || share == 4 || share == 6) dv = (triangle->ax - x1) * (y2 - y1) - (triangle->ay - y1) * (x2 - x1);
     else if (share == 2 || share == 5) dv = (triangle->bx - x1) * (y2 - y1) - (triangle->by - y1) * (x2 - x1);
     else dv = (triangle->cx - x1) * (y2 - y1) - (triangle->cy - y1) * (x2 - x1);
     int p_side = dp < 0 ? -1 : (dp > 0 ? 1 : 0);
     int v_side = dv < 0 ? -1 : (dv > 0 ? 1 : 0);
-    printf("pSide = %d, vSide = %d\n", p_side, v_side);
     return p_side == v_side;
 }
 

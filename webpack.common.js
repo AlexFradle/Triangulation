@@ -1,11 +1,12 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
     entry: {
         index: ['./src/index.js', "./src/convert.js"],
         circumcircle: "./src/circumcircle.js",
-        superTriangle: "./src/superTriangle.js"
+        superTriangle: ["./src/superTriangle.js"]
     },
     output: {
         path: path.resolve(__dirname, 'dist'),
@@ -31,7 +32,21 @@ module.exports = {
             inject: true,
             filename: "superTriangle.html"
         }),
+        new CopyWebpackPlugin({
+            patterns: [
+                {from: "static"}
+            ]
+        }),
     ],
+    resolve: {
+        fallback: {
+            path: require.resolve("path-browserify")
+        }
+    },
+    experiments: {
+        asyncWebAssembly: true,
+        syncWebAssembly: true
+    },
     module: {
         rules: [
             {
@@ -51,7 +66,11 @@ module.exports = {
                         presets: ['@babel/preset-env']
                     }
                 }
-            }
+            },
+            {
+                test: /\.wasm$/,
+                type: "asset/inline",
+            },
         ]
     }
 };

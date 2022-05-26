@@ -203,7 +203,6 @@ export const makeTriangulation = (points, pointBounds, options) => {
 
         const side = (d) => d < 0 ? -1 : (d > 0 ? 1 : 0);
         let x1, y1, x2, y2;
-        print_triangle(triangle);
         if (pointsAtInf.length === 0) {
             return distSq(p, triangle.circumcenter) < triangle.circumradius * triangle.circumradius;
         } else if (pointsAtInf.length === 1) {

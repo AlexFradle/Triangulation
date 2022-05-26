@@ -21,5 +21,6 @@ Triangle *remove_by_index(Node **head, int n);
 Triangle *remove_by_value(Node **head, Triangle *val);
 void delete_linked_list(Node *head, bool free_val);
 bool some(Node **head, Triangle *comp_item, bool (*func)(Triangle *, Triangle *), bool exclude_comp_item);
+unsigned int length(Node **head);
 
 #endif //TRIANGULATION_C_LINKED_LIST_H
