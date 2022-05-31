@@ -184,7 +184,7 @@ void make_super_triangle(
 
 void print_triangle(Triangle *triangle) {
     printf(
-            "a = [%f, %f]\nb = [%f, %f]\nc = [%f, %f]\n",
+            "a = [%f, %f]\nb = [%f, %f]\nc = [%f, %f]\n\n",
             triangle->ax, triangle->ay,
             triangle->bx, triangle->by,
             triangle->cx, triangle->cy

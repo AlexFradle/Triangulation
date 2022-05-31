@@ -98,8 +98,10 @@ float *make_triangulation(float points[], float point_bounds[], int number_of_po
         }
     }
 
+    foreach(&triangulation_head, &print_triangle);
+
     unsigned int len = length(&triangulation_head);
-    float *points_arr = malloc(sizeof(float) * len * 6);
+    float *points_arr = malloc(sizeof(float) * (len * 6 + 1));
     points_arr[0] = (float) len * 6;
     int index = 1;
     Node *ll_current = triangulation_head;
@@ -117,18 +119,18 @@ float *make_triangulation(float points[], float point_bounds[], int number_of_po
     return points_arr;
 }
 
-//void print_array(float **arr, int len) {
-//    for (int i = 0; i < len; i++) {
-//        printf("%f\n", (*arr)[i]);
-//    }
-//}
-//
-//int main() {
-//    float ps[] = {120, 50, 217, 201, 165, 132, 152, 93};
-//    float pbs[] = {120, 50, 120, 201, 217, 201, 217, 50};
-//    float *trig_arr = make_triangulation(ps, pbs, 4);
-//    print_array(&trig_arr, 12);
-//    free(trig_arr);
-//    return 0;
-//}
+void print_array(float **arr, int len) {
+    for (int i = 0; i < len; i++) {
+        printf("%f\n", (*arr)[i]);
+    }
+}
+
+int main() {
+    float ps[] = {740, 850, 200, 640, 794, 253, 423, 297, 423, 97, 423, 434, 740, 530, 128, 310, 924, 466, 937, 681, 937, 211, 794, 365, 696, 67, 464, 235, 514, 250, 598, 533, 372, 559, 700, 472, 642, 62, 987, 352};
+    float pbs[] = {128, 62, 128, 850, 987, 850, 987, 62};
+    float *trig_arr = make_triangulation(ps, pbs, 20);
+//    print_array(&trig_arr, 517);
+    free(trig_arr);
+    return 0;
+}
 
