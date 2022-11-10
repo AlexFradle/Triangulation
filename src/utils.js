@@ -222,14 +222,21 @@ export const makeTriangulation = (points, pointBounds, options) => {
 
     const superTriangle = new Triangle(...getSuperTriangle(...pointBounds), options.c1, options.c2, options.height);
 
+    // use simple dist for better speed but isn't accurate in cases where the points are almost a line
+    const distFunc = (triangle, point) => {
+        if (options.accurate) {
+            return inCircumcircle(triangle, point);
+        } else {
+            return distSq(point, triangle.circumcenter) < triangle.circumradius * triangle.circumradius;
+        }
+    };
+
     let triangulation = [];
     triangulation.push(superTriangle);
     for (const point of points) {
         const badTriangles = [];
         for (const triangle of triangulation) {
-            // use simple dist for better speed but isn't accurate in cases where the points are almost a line
-            // if (distSq(point, triangle.circumcenter) < triangle.circumradius * triangle.circumradius) {
-            if (inCircumcircle(triangle, point)) {
+            if (distFunc(triangle, point)) {
                 badTriangles.push(triangle);
             }
         }

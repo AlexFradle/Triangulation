@@ -64,6 +64,16 @@ const COLOR2 = params.color2 !== null
     ? hexToRgb(params.color2) ?? errorGenerator("incorrect color 2")
     : [0, 255, 0];
 
+const BACKGROUND = params.background !== null
+    ? hexToRgb(params.background) ?? errorGenerator("incorrect background")
+    : [32, 32, 32];
+
+const ACCURATE = params.accurate !== null
+    ? (!isNaN(+params.accurate)
+        ? +params.accurate === 1
+        : errorGenerator("incorrect accurate"))
+    : false;
+
 let SHOW_CIRCLES = false;
 
 // const BOUNDS = [[100, 100], [100, HEIGHT - 100], [WIDTH - 100, HEIGHT - 100], [WIDTH - 100, 100]];
@@ -106,8 +116,8 @@ const sketch = (p) => {
     }
 
     p.draw = () => {
-        p.background(32);
-        triangles = makeTriangulation(POINTS, BOUNDS,{c1: COLOR1, c2: COLOR2, height: HEIGHT});
+        p.background(...BACKGROUND);
+        triangles = makeTriangulation(POINTS, BOUNDS,{c1: COLOR1, c2: COLOR2, height: HEIGHT, accurate: ACCURATE});
         p.noFill();
         p.stroke("red");
         if (MOVE_POINTS) movePoints();
